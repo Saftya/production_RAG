@@ -1,0 +1,14 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      EMBEDDING_BACKEND: hash
+      LLM_BACKEND: stub
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install fastapi "uvicorn[standard]" pydantic faiss-cpu numpy langchain-text-splitters rank-bm25 httpx pytest
+      - run: pytest -q
