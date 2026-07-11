@@ -14,3 +14,4 @@
 {"id": "q14", "question": "Кто обеспечивает работников средствами индивидуальной защиты?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 70"]}
 {"id": "q15", "question": "В какой срок работник может обратиться в суд по спору о восстановлении на работе?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 80"]}
 {"id": "q16", "question": "Как соотносятся минимальная заработная плата и оплата сверхурочной работы?", "type": "multi_chunk", "source_file": "tk.pdf", "relevant_sections": ["Статья 30", "Статья 31"]}
+{"id": "q17", "question": "...", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья N. кусок заголовка"]}

@@ -5,7 +5,8 @@ pydantic==2.13.4
 
 # --- retrieval / indexing ---
 faiss-cpu==1.14.3
-numpy==2.4.4
+numpy<2
+torch==2.2.2
 rank-bm25==0.2.2
 langchain-text-splitters==1.1.2
 
