@@ -70,14 +70,41 @@ curl -X POST localhost:8000/ask -H "Content-Type: application/json" \
 
 ## 6. Ablation
 
-Ноутбук `notebooks/02_ablation.ipynb` → `evaluation/results/ablation_chunksize.png`.
+Три эксперимента на реальном корпусе (Трудовой + Налоговый кодекс РК) и 25-вопросном
+ground truth, воспроизводимые командой `python3 scripts/run_ablation.py --experiment <name>`
+(та же логика — в `notebooks/02_ablation.ipynb`). Сырые числа — `evaluation/results/ablation_<name>.json`.
 
-- **Chunk-size sweep** {200,400,800,1600} (recursive, hybrid).
-- **vector vs hybrid** (section chunking).
+### A. Chunk-size sweep (recursive) vs section (article-aware) baseline
 
-Наблюдение (demo): hybrid поднимает recall@5 с 0.875 до 0.938 — BM25 точно ловит номера статей и термины, которых dense-эмбеддер на коротких запросах недобирает. Это и есть осознанное улучшение над наивным baseline (recall@5≈0.73).
+| config | strategy | chunk_size | overlap | n_chunks | median_chars | build_s | encode_ms/chunk | recall@5 | precision@5 | MRR | nDCG@10 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| recursive_200 | recursive | 200 | 40 | 22752 | 138.000 | 58.790 | 0.264 | 0.800 | 0.328 | 0.628 | 0.655 |
+| recursive_400 | recursive | 400 | 80 | 9919 | 344 | 48.590 | 0.237 | 0.600 | 0.264 | 0.558 | 0.575 |
+| recursive_800 | recursive | 800 | 160 | 5085 | 747 | 51.840 | 0.229 | 0.600 | 0.208 | 0.440 | 0.461 |
+| recursive_1600 | recursive | 1600 | 320 | 2497 | 1545 | 42.980 | 0.247 | 0.680 | 0.208 | 0.550 | 0.592 |
+| section_baseline | section | — | — | 1335 | 1369 | 44.690 | 0.368 | 0.920 | 0.208 | 0.716 | 0.768 |
 
-> _Замените честным предложением по своим числам, напр.: «section даёт X.XX против Y.YY у recursive-800, потому что каждая статья самодостаточна и не рвётся между чанками»._
+![chunk-size ablation](evaluation/results/ablation_chunk_size.png)
+
+### B. Retrieval strategy: vector vs hybrid (section chunking)
+
+| mode | n_chunks | build_s | encode_ms/chunk | recall@5 | precision@5 | MRR | nDCG@10 |
+|---|---|---|---|---|---|---|---|
+| vector | 1335 | 47.390 | 0.248 | 0.800 | 0.192 | 0.564 | 0.641 |
+| hybrid | 1335 | 48.000 | 0.289 | 0.920 | 0.208 | 0.716 | 0.768 |
+
+![retrieval ablation](evaluation/results/ablation_retrieval.png)
+
+### C. min_chunk_chars: filtering table-of-contents stubs
+
+| min_chunk_chars | n_chunks | stub_chunks_filtered | median_chars | recall@5 | precision@5 | MRR | nDCG@10 |
+|---|---|---|---|---|---|---|---|
+| 0 | 2394 | — | 166.000 | 0.880 | 0.272 | 0.757 | 0.779 |
+| 120 | 1335 | 1059 | 1369 | 0.920 | 0.208 | 0.716 | 0.768 |
+
+![min_chunk ablation](evaluation/results/ablation_min_chunk.png)
+
+> ВЫВОД (заполнить своими словами): ...
 
 ## 7. Latency и cost budget
 
