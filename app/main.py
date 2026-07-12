@@ -17,7 +17,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
 
 from app.generation import PROMPT_VERSION, REFUSAL, ResponseCache, generate
 from app.observability import (
@@ -133,7 +132,7 @@ def ask(req: AskRequest) -> JSONResponse:
 
     try:
         tr = time.perf_counter()
-        retrieved, _rc_hit = retriever.retrieve(req.question, top_k, req.filters)
+        retrieved, retrieval_cache_hit = retriever.retrieve(req.question, top_k, req.filters)
         stages["embedding_retrieval_ms"] = round((time.perf_counter() - tr) * 1000, 1)
 
         tg = time.perf_counter()
@@ -153,6 +152,18 @@ def ask(req: AskRequest) -> JSONResponse:
         return JSONResponse(
             status_code=502, content={"error": "llm_unavailable", "request_id": rid}
         )
+    except Exception as exc:  # last line of defence: never leak a 500 + stack trace
+        total_ms = (time.perf_counter() - t0) * 1000
+        metrics.observe(total_ms, error=True, tokens=0, top1_score=None, cache_hit=False)
+        log(
+            "ask_internal_error",
+            question=req.question,
+            error=type(exc).__name__,
+            detail=str(exc)[:200],
+        )
+        return JSONResponse(
+            status_code=502, content={"error": "internal_error", "request_id": rid}
+        )
 
     cache.put(req.question, top_k, answer)
     total_ms = (time.perf_counter() - t0) * 1000
@@ -169,12 +180,8 @@ def ask(req: AskRequest) -> JSONResponse:
         token_usage=tokens,
         answer_length=len(answer.answer),
         cache_hit_bool=False,
+        retrieval_cache_hit=retrieval_cache_hit,
         error_bool=False,
         refused=answer.answer == REFUSAL,
     )
     return JSONResponse(answer.model_dump())
-
-
-# ------------------------------------------------------------------- web UI
-# Mounted last so it never shadows the API routes above.
-app.mount("/", StaticFiles(directory="app/static", html=True), name="ui")

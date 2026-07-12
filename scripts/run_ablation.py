@@ -63,7 +63,7 @@ RAW_DIR = str(ROOT / "data" / "raw")
 # ---------------------------------------------------------------- worker (one config, one process)
 
 
-def _build_and_evaluate(config: dict[str, Any], top_k: int) -> dict[str, Any]:
+def _build_and_evaluate(config: dict[str, Any], top_k: int, gt_path: str) -> dict[str, Any]:
     """Ingest + chunk + embed + index one config, evaluate it, return a result row.
     Runs inside the worker subprocess spawned by run_config()."""
     from build_index import build_chunks  # noqa: E402
@@ -91,7 +91,7 @@ def _build_and_evaluate(config: dict[str, Any], top_k: int) -> dict[str, Any]:
     build_s = time.perf_counter() - t0
     store.save(str(ABLATION_DIR / config["name"]))
 
-    gt = load_gt(str(GT_PATH))
+    gt = load_gt(gt_path)
     retriever = Retriever(embedder, store, mode=config.get("mode", "hybrid"))
     m = evaluate(retriever, gt, k=top_k)
 
@@ -113,16 +113,16 @@ def _build_and_evaluate(config: dict[str, Any], top_k: int) -> dict[str, Any]:
     }
 
 
-def _worker_main(config_path: str, result_path: str, top_k: int) -> None:
+def _worker_main(config_path: str, result_path: str, top_k: int, gt_path: str) -> None:
     config = json.loads(Path(config_path).read_text(encoding="utf-8"))
-    row = _build_and_evaluate(config, top_k)
+    row = _build_and_evaluate(config, top_k, gt_path)
     Path(result_path).write_text(json.dumps(row), encoding="utf-8")
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(0)  # skip normal interpreter shutdown — sidesteps the native-lib segfault on exit
 
 
-def run_config(config: dict[str, Any], top_k: int) -> dict[str, Any]:
+def run_config(config: dict[str, Any], top_k: int, gt_path: str = str(GT_PATH)) -> dict[str, Any]:
     """Run one config in an isolated subprocess; return its result row."""
     with tempfile.TemporaryDirectory() as tmp:
         config_path = Path(tmp) / "config.json"
@@ -133,7 +133,7 @@ def run_config(config: dict[str, Any], top_k: int) -> dict[str, Any]:
             [
                 sys.executable, str(SELF),
                 "--_worker", "--_config", str(config_path), "--_result", str(result_path),
-                "--top-k", str(top_k),
+                "--top-k", str(top_k), "--gt", gt_path,
             ],
             cwd=str(ROOT),
         )
@@ -153,16 +153,24 @@ def run_config(config: dict[str, Any], top_k: int) -> dict[str, Any]:
 # ---------------------------------------------------------------- experiments
 
 
-def experiment_chunk_size(top_k: int = 5) -> list[dict[str, Any]]:
-    """A) recursive chunk-size sweep {200,400,800,1600}, overlap=size//5,
-    plus the section (article-aware) strategy as a baseline row. Everything
-    else fixed: same embedding model, hybrid retrieval, same top_k."""
-    from app.schemas import settings  # noqa: E402 (lazy: only need settings.min_chunk_chars)
+def experiment_chunk_size(top_k: int = 5, gt_path: str = str(GT_PATH)) -> list[dict[str, Any]]:
+    """A) recursive chunk-size sweep {200,400,800,1600}, overlap=size//5, plus the
+    section (article-aware) strategy as a baseline row.
+
+    ONE variable moves: how the text is cut. Everything else is pinned — same
+    embedding model, hybrid retrieval, same top_k, and the SAME min_chunk_chars
+    across every row (see below). An earlier version gave the section baseline the
+    ToC-stub filter (min_chunk_chars=120) while leaving it off for recursive; that
+    changes two variables at once and quietly flatters the baseline. The stub filter
+    is measured on its own in experiment_min_chunk().
+    """
+    MIN_CHUNK_CHARS_FIXED = 0  # pinned across all rows: isolate the chunking variable
 
     configs = [
         {
             "name": f"recursive_{size}", "strategy": "recursive",
-            "chunk_size": size, "overlap": size // 5, "min_chunk_chars": 0, "mode": "hybrid",
+            "chunk_size": size, "overlap": size // 5,
+            "min_chunk_chars": MIN_CHUNK_CHARS_FIXED, "mode": "hybrid",
         }
         for size in (200, 400, 800, 1600)
     ]
@@ -170,13 +178,13 @@ def experiment_chunk_size(top_k: int = 5) -> list[dict[str, Any]]:
         {
             "name": "section_baseline", "strategy": "section",
             "chunk_size": None, "overlap": None,
-            "min_chunk_chars": settings.min_chunk_chars, "mode": "hybrid",
+            "min_chunk_chars": MIN_CHUNK_CHARS_FIXED, "mode": "hybrid",
         }
     )
-    return [run_config(c, top_k) for c in configs]
+    return [run_config(c, top_k, gt_path) for c in configs]
 
 
-def experiment_retrieval(top_k: int = 5) -> list[dict[str, Any]]:
+def experiment_retrieval(top_k: int = 5, gt_path: str = str(GT_PATH)) -> list[dict[str, Any]]:
     """B) strategy=section fixed, mode in {vector, hybrid}."""
     from app.schemas import settings  # noqa: E402
 
@@ -189,12 +197,13 @@ def experiment_retrieval(top_k: int = 5) -> list[dict[str, Any]]:
                     "min_chunk_chars": settings.min_chunk_chars, "mode": mode,
                 },
                 top_k,
+                gt_path,
             )
         )
     return rows
 
 
-def experiment_min_chunk(top_k: int = 5) -> list[dict[str, Any]]:
+def experiment_min_chunk(top_k: int = 5, gt_path: str = str(GT_PATH)) -> list[dict[str, Any]]:
     """C) strategy=section fixed, min_chunk_chars in {0, 120}: how many
     table-of-contents stub chunks (heading, no body) get filtered, and the
     effect on precision@5."""
@@ -350,7 +359,7 @@ def main() -> None:
     args = p.parse_args()
 
     if args._worker:
-        _worker_main(args._config, args._result, args.top_k)
+        _worker_main(args._config, args._result, args.top_k, args.gt)
         return  # unreachable — _worker_main always os._exit()s
 
     if not args.experiment:
@@ -365,7 +374,7 @@ def main() -> None:
     gt = load_gt(args.gt)
     print(f"[{args.experiment}] ground_truth_questions={len(gt)}")
 
-    rows = EXPERIMENTS[args.experiment](args.top_k)
+    rows = EXPERIMENTS[args.experiment](args.top_k, args.gt)
 
     json_path = out_dir / f"ablation_{args.experiment}.json"
     md_path = out_dir / f"ablation_{args.experiment}.md"

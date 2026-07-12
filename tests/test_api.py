@@ -25,7 +25,7 @@ def test_ask_valid_returns_answer_and_sources(client):
     assert len(body["sources"]) >= 1
     assert 0.0 <= body["confidence"] <= 1.0
     assert "request_id" in body
-    assert body["prompt_version"] == "rag_v1"
+    assert body["prompt_version"] == "rag_v2"
 
 
 def test_ask_empty_question_is_422_not_500(client):

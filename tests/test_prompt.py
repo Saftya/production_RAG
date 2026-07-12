@@ -67,4 +67,4 @@ def test_refuses_on_irrelevant_context():
 
 def test_prompt_version_is_stamped():
     resp, _ = generate("вопрос", _grounded("c1", "текст", "Статья 1"), "rid-6")
-    assert resp.prompt_version == "rag_v1"
+    assert resp.prompt_version == "rag_v2"

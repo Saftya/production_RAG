@@ -153,7 +153,7 @@ class CachedEmbedder:
         return self.cache.stats()
 
 
-def build_embedder(use_cache: bool = True) -> CachedEmbedder:
+def build_embedder() -> CachedEmbedder:
     """Single factory used by the service, build_index and the evaluation."""
     if settings.embedding_backend == "hash":
         base: Embedder = HashEmbedder(dim=settings.embedding_dim)

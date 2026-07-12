@@ -3,104 +3,870 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ask the docs</title>
+<title>Интеллектуальный помощник по Кодексам РК — RAG-сервис</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    color-scheme: light dark;
-    --bg: #f7f7f8; --fg: #1a1a1a; --muted: #666; --card: #fff;
-    --border: #e2e2e5; --accent: #2563eb; --accent-fg: #fff;
-    --refusal: #92400e; --refusal-bg: #fef3c7;
-    --err: #b91c1c; --err-bg: #fee2e2;
-    --answer-bg: #fff;
+    --bg: #FDF8F6; /* warm milk / very light pink-grey */
+    --fg: #2E2A2E; /* dark graphite */
+    --muted: #6E6A6E; /* muted graphite */
+    --card-bg: #FFFFFF;
+    --border: #EDE6E3;
+    --accent: #B08BBB; /* muted pink-lilac */
+    --accent-hover: #C9A0B4;
+    --accent-light: #F6EDEB;
+    
+    --ready-color: #2ECC71;
+    --not-ready-color: #BDC3C7;
+    
+    /* State colors */
+    --success-bg: #E6F4EA;
+    --success-fg: #137333;
+    
+    --refusal-bg: #FEF3C7;
+    --refusal-fg: #B45309;
+    --refusal-border: #FCD34D;
+    
+    --error-bg: #FCE8E6;
+    --error-fg: #C5221F;
+    --error-border: #F87171;
+    
+    --shadow-sm: 0 2px 8px rgba(201, 160, 180, 0.05);
+    --shadow-md: 0 8px 24px rgba(201, 160, 180, 0.08);
+    --shadow-lg: 0 16px 40px rgba(201, 160, 180, 0.12);
+    
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #16171a; --fg: #e8e8ea; --muted: #999; --card: #1e2024;
-      --border: #2c2e33; --accent: #3b82f6; --accent-fg: #fff;
-      --refusal: #fbbf24; --refusal-bg: #3a2e0f;
-      --err: #f87171; --err-bg: #3a1414;
-      --answer-bg: #1e2024;
-    }
-  }
+
   * { box-sizing: border-box; }
+  
   body {
-    margin: 0; padding: 2rem 1rem 4rem; background: var(--bg); color: var(--fg);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    display: flex; justify-content: center;
+    margin: 0;
+    padding: 2.5rem 1.5rem 5rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
   }
-  main { width: 100%; max-width: 780px; }
-  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
-  p.sub { color: var(--muted); margin: 0 0 1.75rem; font-size: .9rem; }
+  
+  main {
+    width: 100%;
+    max-width: 800px;
+  }
 
-  /* --- input block: large textarea + prominent send button --- */
-  form { margin-bottom: 1.25rem; }
+  /* --- Header --- */
+  .main-header {
+    margin-bottom: 2rem;
+  }
+  .title-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  h1 {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--fg);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .ready-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--not-ready-color);
+    box-shadow: 0 0 0 3px rgba(189, 195, 199, 0.2);
+    position: relative;
+    cursor: help;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .ready-dot.ready {
+    background-color: var(--ready-color);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2), 0 0 8px var(--ready-color);
+  }
+  .ready-dot.not-ready {
+    background-color: var(--error-fg);
+    box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.2), 0 0 8px var(--error-fg);
+  }
+  p.sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin: 0.4rem 0 0;
+    line-height: 1.5;
+  }
+
+  /* --- Features Grid --- */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0 2rem;
+  }
+  
+  .feature-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem;
+    display: flex;
+    gap: 0.8rem;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .feature-icon {
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+  
+  .feature-title {
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin-bottom: 0.2rem;
+    color: var(--fg);
+  }
+  
+  .feature-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  /* --- Form / Input Deck --- */
+  form {
+    margin-bottom: 2rem;
+  }
+  
+  .input-container {
+    position: relative;
+    width: 100%;
+  }
+
   textarea#question {
-    width: 100%; resize: vertical; padding: 1rem 1.1rem; border-radius: 14px;
-    border: 1px solid var(--border); background: var(--card); color: var(--fg);
-    font-size: 1.05rem; font-family: inherit; line-height: 1.5;
-    min-height: 9rem; display: block;
+    width: 100%;
+    resize: none;
+    padding: 1.1rem 3rem 1.1rem 1.1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--fg);
+    font-size: 1.05rem;
+    font-family: inherit;
+    line-height: 1.5;
+    min-height: 5.5rem;
+    max-height: 300px;
+    display: block;
+    outline: none;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  textarea#question:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  
+  textarea#question:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+  }
+  
+  .clear-btn {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: opacity 0.2s ease, color 0.2s ease;
+  }
+  
+  .clear-btn:hover {
+    opacity: 1;
+    color: var(--fg);
+  }
+  
+  .textarea-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 0.4rem;
+    padding: 0 0.2rem;
+  }
+  
+  .validation-msg {
+    font-size: 0.85rem;
+    color: var(--error-fg);
+    font-weight: 500;
+    min-height: 1.2rem;
+  }
+  
+  .char-counter {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
 
-  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: .7rem; }
-  .options { display: flex; gap: 1rem; align-items: center; font-size: .85rem; color: var(--muted); }
-  .options input[type=number] { width: 3.5rem; padding: .25rem .4rem; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--fg); }
+  /* --- Suggestion Chips --- */
+  .suggestions-container {
+    margin-top: -0.2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .suggestions-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .suggestion-chip {
+    font-size: 0.82rem;
+    color: var(--fg);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    user-select: none;
+  }
+  
+  .suggestion-chip:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(176, 139, 187, 0.1);
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+  }
+  
+  .options {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  
+  .options label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .options input[type=number] {
+    width: 4rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--fg);
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  
+  .options input[type=number]:focus {
+    border-color: var(--accent);
+  }
 
   button#submit-btn {
-    padding: .8rem 2rem; border: none; border-radius: 12px; background: var(--accent);
-    color: var(--accent-fg); font-size: 1rem; font-weight: 600; cursor: pointer;
-    min-width: 11rem;
+    padding: 0.8rem 2.2rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: #FFFFFF;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(176, 139, 187, 0.25);
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  button#submit-btn:disabled { opacity: .5; cursor: default; }
-  .spinner { display: inline-block; width: 1em; height: 1em; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -.15em; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  button#submit-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    box-shadow: 0 6px 16px rgba(176, 139, 187, 0.35);
+    transform: translateY(-1px);
+  }
+  
+  button#submit-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  
+  button#submit-btn:disabled {
+    background: #E8E2E0;
+    color: #A69F9D;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
 
-  /* --- response window: always visible, holds the latest answer --- */
+  /* --- Response Container --- */
   #response {
-    margin-top: 1.75rem; border: 1px solid var(--border); border-radius: 16px;
-    background: var(--answer-bg); min-height: 12rem; padding: 1.5rem 1.6rem;
-    display: flex; flex-direction: column;
+    margin-top: 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card-bg);
+    box-shadow: var(--shadow-md);
+    padding: 2rem;
+    min-height: 10rem;
+    transition: all 0.3s ease;
   }
-  #response h2 { margin: 0 0 1rem; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-  #response .placeholder { margin: auto; color: var(--muted); text-align: center; font-size: .95rem; }
-  .response-question { font-size: .85rem; color: var(--muted); margin: 0 0 .8rem; }
-  .response-answer { margin: 0 0 1rem; white-space: pre-wrap; line-height: 1.6; font-size: 1.05rem; }
-  .response-answer.refusal { color: var(--refusal); background: var(--refusal-bg); padding: .7rem .9rem; border-radius: 10px; }
-  .response-answer.err { color: var(--err); background: var(--err-bg); padding: .7rem .9rem; border-radius: 10px; }
-  .meta { display: flex; flex-wrap: wrap; gap: .4rem .6rem; font-size: .78rem; color: var(--muted); margin-bottom: 1rem; }
-  .badge { border: 1px solid var(--border); border-radius: 999px; padding: .1rem .55rem; }
-  .badge.cached { color: var(--accent); border-color: var(--accent); }
-  .badge.degraded { color: var(--err); border-color: var(--err); }
-  .sources { display: flex; flex-direction: column; gap: .35rem; }
-  .source { font-size: .82rem; padding: .5rem .7rem; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); }
-  .source .title { font-weight: 600; }
-  .source .file { color: var(--muted); }
+  
+  #response .placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    text-align: center;
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.5;
+    padding: 2.5rem 1rem;
+  }
+  
+  #response .placeholder svg {
+    margin-bottom: 1rem;
+    opacity: 0.6;
+  }
 
-  /* --- history: earlier exchanges, secondary --- */
-  #history-heading { margin: 2.25rem 0 .75rem; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; display: none; }
-  #history { display: flex; flex-direction: column; gap: .6rem; }
-  .hist-item { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: .7rem .9rem; font-size: .85rem; }
-  .hist-item .q { font-weight: 600; margin: 0 0 .3rem; }
-  .hist-item .a { margin: 0; color: var(--muted); white-space: pre-wrap; }
+  /* --- Animations --- */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in {
+    animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* --- Skeleton Loader --- */
+  .response-question-skeleton {
+    height: 1rem;
+    width: 50%;
+    background: #F3ECE9;
+    margin-bottom: 1.2rem;
+    border-radius: var(--radius-sm);
+  }
+  
+  .skeleton-loader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+  }
+  
+  .skeleton-line {
+    height: 1.1rem;
+    background: linear-gradient(90deg, #FDF8F6 25%, #EDE6E3 50%, #FDF8F6 75%);
+    background-size: 200% 100%;
+    animation: loading-skeleton 1.5s infinite;
+    border-radius: var(--radius-sm);
+  }
+  
+  .skeleton-title {
+    width: 35%;
+    height: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .skeleton-body-1 { width: 95%; }
+  .skeleton-body-2 { width: 90%; }
+  .skeleton-body-3 { width: 65%; }
+
+  @keyframes loading-skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* --- Main Response UI Elements --- */
+  .response-question {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.6rem;
+  }
+  
+  .answer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  
+  .answer-title {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--fg);
+    background: var(--accent-light);
+  }
+  
+  .copy-btn.copied {
+    background: var(--success-bg);
+    color: var(--success-fg);
+    border-color: #A3DCA7;
+  }
+  
+  .confidence-container {
+    margin-bottom: 1.4rem;
+  }
+  
+  .confidence-text {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+  
+  .confidence-val {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  
+  .confidence-bar-bg {
+    height: 6px;
+    background: #F3ECE9;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  
+  .confidence-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--ready-color) 100%);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .response-answer {
+    font-size: 1.15rem; /* 19-20px */
+    font-weight: 500;
+    color: var(--fg);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    white-space: pre-wrap;
+  }
+  
+  /* --- Refusal Block --- */
+  .refusal-block {
+    background: var(--refusal-bg);
+    border: 1px solid var(--refusal-border);
+    border-radius: var(--radius-md);
+    padding: 1.2rem 1.4rem;
+    color: var(--refusal-fg);
+    margin-bottom: 1.5rem;
+  }
+  
+  .refusal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .refusal-header svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  
+  .refusal-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  /* --- Degraded Mode Banner --- */
+  .degraded-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.9rem 1.2rem;
+    background: var(--refusal-bg);
+    border: 1px solid var(--refusal-border);
+    color: var(--refusal-fg);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  
+  .degraded-banner svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  /* --- Error Block --- */
+  .error-block {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: var(--radius-md);
+    padding: 1.2rem 1.4rem;
+    color: var(--error-fg);
+  }
+  
+  .error-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .error-header svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  
+  .error-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  /* --- Sources section --- */
+  .sources-heading {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 0 0 0.8rem;
+    font-weight: 600;
+  }
+  
+  .sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .source-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .source-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .source-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.2rem;
+    user-select: none;
+    cursor: pointer;
+    gap: 1rem;
+  }
+  
+  .source-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  
+  .source-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  
+  .source-badge.tk {
+    background: #E2EFEA;
+    color: #205E49;
+    border-color: #D2E7DF;
+  }
+  
+  .source-badge.nalog {
+    background: #EBE4F5;
+    color: #5B3E84;
+    border-color: #DFD5F0;
+  }
+  
+  .source-badge.other {
+    background: #F3ECE9;
+    color: var(--fg);
+    border-color: var(--border);
+  }
+  
+  .source-title {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--fg);
+  }
+  
+  .source-score-chevron {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--muted);
+  }
+  
+  .source-score {
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--accent-light);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  
+  .source-chevron {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+  
+  .source-card.open .source-chevron {
+    transform: rotate(180deg);
+  }
+  
+  .source-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #FCFAF9;
+  }
+  
+  .source-content-inner {
+    padding: 1.2rem;
+    border-top: 1px solid var(--border);
+  }
+  
+  .source-details {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1.2rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+  
+  .source-detail-label {
+    font-weight: 600;
+  }
+  
+  .source-detail-value {
+    color: var(--fg);
+    font-family: monospace;
+    word-break: break-all;
+  }
+  
+  .source-notice {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    padding: 0.8rem 1rem;
+    background: #FFFFFF;
+    border-left: 3.5px solid var(--accent);
+    border-radius: 4px;
+    color: var(--fg);
+  }
+
+  /* --- Meta Row / Footer --- */
+  .response-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.2rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+    margin-top: 1.5rem;
+    align-items: center;
+  }
+  
+  .meta-item {
+    display: flex;
+    gap: 0.25rem;
+  }
+  
+  .meta-val {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  
+  .meta-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+  
+  .cached-badge {
+    background: var(--success-bg);
+    color: var(--success-fg);
+    border-color: #A3DCA7;
+  }
+
+  /* --- History --- */
+  #history-heading {
+    margin: 3rem 0 1rem;
+    font-size: 1.1rem;
+    color: var(--fg);
+    font-weight: 700;
+    font-family: 'Manrope', sans-serif;
+    display: none;
+    letter-spacing: -0.01em;
+  }
+  
+  #history {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  
+  .hist-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    padding: 1.2rem 1.4rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hist-item:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .hist-item .q {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0 0 0.6rem;
+    color: var(--fg);
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 0.5rem;
+  }
+  
+  .hist-item .a {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
 </style>
 </head>
 <body>
 <main>
-  <h1>Ask the docs</h1>
-  <p class="sub">Вопросы по загруженному корпусу — ответ строится строго на найденных фрагментах.</p>
+  <header class="main-header">
+    <div class="title-container">
+      <h1>Поиск по Кодексам РК</h1>
+      <div id="ready-indicator" class="ready-dot" title="Проверка готовности..."></div>
+    </div>
+    <p class="sub">Справочный RAG-сервис по Трудовому и Налоговому кодексам Республики Казахстан.</p>
+  </header>
+
+
 
   <form id="ask-form">
-    <textarea id="question" placeholder="Например: Какова минимальная продолжительность ежегодного трудового отпуска?" required minlength="3" maxlength="500"></textarea>
-    <div class="toolbar">
-      <div class="options">
-        <label>top_k <input id="top-k" type="number" min="1" max="20" value="5"></label>
+    <div class="input-container">
+      <textarea id="question" placeholder="Задайте свой вопрос по Трудовому или Налоговому законодательству..." required></textarea>
+      <button id="clear-btn" class="clear-btn" type="button" style="display:none;" title="Очистить поле">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="textarea-info">
+      <div id="validation-msg" class="validation-msg"></div>
+      <div id="char-counter" class="char-counter">0/500</div>
+    </div>
+    
+    <!-- Suggestions Section -->
+    <div class="suggestions-container">
+      <div class="suggestions-label">Частые вопросы:</div>
+      <div class="suggestions">
+        <span class="suggestion-chip" onclick="applySuggestion('Какова минимальная продолжительность ежегодного трудового отпуска?')">Длительность отпуска</span>
+        <span class="suggestion-chip" onclick="applySuggestion('Какие дисциплинарные взыскания может применить работодатель?')">Дисциплинарные взыскания</span>
+        <span class="suggestion-chip" onclick="applySuggestion('Каков порядок расторжения трудового договора по инициативе работника?')">Расторжение договора</span>
       </div>
-      <button id="submit-btn" type="submit">Отправить запрос</button>
+    </div>
+    
+    <div class="toolbar" style="justify-content: flex-end;">
+      <button id="submit-btn" type="submit" disabled>Отправить запрос</button>
     </div>
   </form>
 
   <div id="response">
-    <p class="placeholder" id="response-placeholder">Ответ появится здесь.</p>
+    <div class="placeholder" id="response-placeholder">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Ответ с обоснованием появится здесь после отправки запроса.</span>
+    </div>
   </div>
 
   <h2 id="history-heading">Предыдущие вопросы</h2>
@@ -110,62 +876,308 @@
 <script>
 const form = document.getElementById('ask-form');
 const questionEl = document.getElementById('question');
-const topKEl = document.getElementById('top-k');
+
 const submitBtn = document.getElementById('submit-btn');
 const responseEl = document.getElementById('response');
 const historyEl = document.getElementById('history');
 const historyHeading = document.getElementById('history-heading');
+const charCounter = document.getElementById('char-counter');
+const validationMsg = document.getElementById('validation-msg');
+const clearBtn = document.getElementById('clear-btn');
 
 function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function renderResponse(question, body, opts) {
-  responseEl.innerHTML = '';
+// Polling /ready status indicator
+async function checkReady() {
+  const dot = document.getElementById('ready-indicator');
+  if (!dot) return;
+  try {
+    const res = await fetch('/ready');
+    const data = await res.json();
+    if (res.ok && data.ready) {
+      dot.className = 'ready-dot ready';
+      dot.title = 'Сервис готов. Индекс загружен, эмбеддер активен. (index loaded)';
+    } else {
+      dot.className = 'ready-dot not-ready';
+      dot.title = `Сервис не готов: ${data.index_loaded ? 'Индекс загружен' : 'Индекс не загружен'}. (index status)`;
+    }
+  } catch (err) {
+    dot.className = 'ready-dot not-ready';
+    dot.title = 'Сервис недоступен. Ошибка сети при проверке готовности.';
+  }
+}
 
-  const q = document.createElement('p');
+// Auto-grow textarea, clear btn and client-side validation
+function updateTextarea() {
+  questionEl.style.height = 'auto';
+  questionEl.style.height = Math.min(questionEl.scrollHeight, 300) + 'px';
+  
+  const len = questionEl.value.length;
+  charCounter.textContent = `${len}/500`;
+  
+  if (len > 0) {
+    clearBtn.style.display = 'block';
+  } else {
+    clearBtn.style.display = 'none';
+  }
+  
+  if (len === 0) {
+    validationMsg.textContent = '';
+    submitBtn.disabled = true;
+  } else if (len < 3) {
+    validationMsg.textContent = 'Длина вопроса должна быть от 3 до 500 символов (сейчас слишком короткий).';
+    submitBtn.disabled = true;
+  } else if (len > 500) {
+    validationMsg.textContent = 'Длина вопроса должна быть от 3 до 500 символов (сейчас слишком длинный).';
+    submitBtn.disabled = true;
+  } else {
+    validationMsg.textContent = '';
+    submitBtn.disabled = false;
+  }
+}
+
+questionEl.addEventListener('input', updateTextarea);
+clearBtn.addEventListener('click', () => {
+  questionEl.value = '';
+  updateTextarea();
+  questionEl.focus();
+});
+
+// suggestion chips click handler
+function applySuggestion(text) {
+  questionEl.value = text;
+  updateTextarea();
+  questionEl.focus();
+  
+  // Submit the form
+  form.dispatchEvent(new Event('submit'));
+}
+
+// Run immediate ready check and start polling
+checkReady();
+setInterval(checkReady, 30000);
+
+// Copy response answer to clipboard
+function copyAnswerText() {
+  const answerEl = document.querySelector('.response-answer');
+  if (!answerEl) return;
+  navigator.clipboard.writeText(answerEl.textContent).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    if (!btn) return;
+    const span = btn.querySelector('span');
+    const origText = span.textContent;
+    btn.classList.add('copied');
+    span.textContent = 'Скопировано!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      span.textContent = origText;
+    }, 2000);
+  });
+}
+
+// Toggle source card height animation
+function toggleSourceCard(card) {
+  const isOpen = card.classList.contains('open');
+  
+  // Close all other source cards for a clean accordion effect
+  document.querySelectorAll('.source-card.open').forEach(c => {
+    if (c !== card) {
+      c.classList.remove('open');
+      c.querySelector('.source-content').style.maxHeight = null;
+    }
+  });
+  
+  if (isOpen) {
+    card.classList.remove('open');
+    card.querySelector('.source-content').style.maxHeight = null;
+  } else {
+    card.classList.add('open');
+    const content = card.querySelector('.source-content');
+    content.style.maxHeight = content.scrollHeight + 'px';
+  }
+}
+
+function showSkeleton() {
+  responseEl.innerHTML = `
+    <div class="response-question-skeleton"></div>
+    <div class="skeleton-loader">
+      <div class="skeleton-line skeleton-title"></div>
+      <div class="skeleton-line skeleton-body-1"></div>
+      <div class="skeleton-line skeleton-body-2"></div>
+      <div class="skeleton-line skeleton-body-3"></div>
+    </div>
+  `;
+}
+
+function showError(message) {
+  responseEl.innerHTML = '';
+  const errDiv = document.createElement('div');
+  errDiv.className = 'error-block fade-in';
+  errDiv.innerHTML = `
+    <div class="error-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span>Ошибка выполнения запроса</span>
+    </div>
+    <p class="error-text">${escapeHtml(message)}</p>
+  `;
+  responseEl.appendChild(errDiv);
+}
+
+function renderResponse(question, body, startTime) {
+  responseEl.innerHTML = '';
+  const latencyMs = Math.round(performance.now() - startTime);
+
+  // Parent div for fade-in effect
+  const container = document.createElement('div');
+  container.className = 'fade-in';
+
+  // 1. Degraded banner if necessary
+  if (body.degraded) {
+    const banner = document.createElement('div');
+    banner.className = 'degraded-banner';
+    banner.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span>Поиск по документам временно недоступен</span>
+    `;
+    container.appendChild(banner);
+  }
+
+  // 2. Question text
+  const q = document.createElement('div');
   q.className = 'response-question';
   q.textContent = question;
-  responseEl.appendChild(q);
+  container.appendChild(q);
 
-  if (opts && opts.error) {
-    const a = document.createElement('p');
-    a.className = 'response-answer err';
-    a.textContent = body;
-    responseEl.appendChild(a);
-    return;
+  // 3. Grounded refusal check (answer text or used_context is false)
+  const isRefusal = /don.t know from the provided context/i.test(body.answer) || body.used_context === false;
+  
+  if (isRefusal) {
+    const refusalDiv = document.createElement('div');
+    refusalDiv.className = 'refusal-block';
+    refusalDiv.innerHTML = `
+      <div class="refusal-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span>Не нашлось ответа в кодексах</span>
+      </div>
+      <p class="refusal-text">Система отвечает только на основе предоставленных документов. К сожалению, по вашему запросу не найдено подтверждающих фрагментов в кодексах РК.</p>
+    `;
+    container.appendChild(refusalDiv);
+  } else {
+    // Render answer header with Copy Button
+    const aHeader = document.createElement('div');
+    aHeader.className = 'answer-header';
+    aHeader.innerHTML = `
+      <h3 class="answer-title">Ответ ассистента</h3>
+      <button class="copy-btn" onclick="copyAnswerText()" title="Копировать ответ">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Копировать</span>
+      </button>
+    `;
+    container.appendChild(aHeader);
+
+
+
+    // Render Answer
+    const a = document.createElement('div');
+    a.className = 'response-answer';
+    a.textContent = body.answer;
+    container.appendChild(a);
   }
 
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-  const badges = [
-    `confidence ${body.confidence.toFixed(2)}`,
-    body.used_context ? 'used_context' : 'no context',
-    body.model_name,
-  ];
-  meta.innerHTML = badges.map(b => `<span class="badge">${escapeHtml(b)}</span>`).join('');
-  if (body.cached) meta.innerHTML += `<span class="badge cached">cached</span>`;
-  if (body.degraded) meta.innerHTML += `<span class="badge degraded">degraded</span>`;
-  responseEl.appendChild(meta);
-
-  const a = document.createElement('p');
-  const isRefusal = /don.t know from the provided context/i.test(body.answer);
-  a.className = 'response-answer' + (isRefusal ? ' refusal' : '');
-  a.textContent = body.answer;
-  responseEl.appendChild(a);
-
+  // 4. Render Collapsible Sources
   if (body.sources && body.sources.length) {
-    const src = document.createElement('div');
-    src.className = 'sources';
+    const sourcesHeading = document.createElement('h3');
+    sourcesHeading.className = 'sources-heading';
+    sourcesHeading.textContent = 'Использованные источники:';
+    container.appendChild(sourcesHeading);
+
+    const srcContainer = document.createElement('div');
+    srcContainer.className = 'sources-list';
+    
     body.sources.forEach(s => {
-      const d = document.createElement('div');
-      d.className = 'source';
-      d.innerHTML = `<span class="title">${escapeHtml(s.section_title || s.chunk_id)}</span> ` +
-        `<span class="file">— ${escapeHtml(s.source_file)}${s.page != null ? ', стр. ' + s.page : ''} (score ${s.score.toFixed(3)})</span>`;
-      src.appendChild(d);
+      const card = document.createElement('div');
+      card.className = 'source-card';
+      
+      let badgeText = s.source_file;
+      let badgeClass = 'other';
+      if (/tk\.pdf|labor/i.test(s.source_file)) {
+        badgeText = 'Трудовой кодекс';
+        badgeClass = 'tk';
+      } else if (/nalog/i.test(s.source_file)) {
+        badgeText = 'Налоговый кодекс';
+        badgeClass = 'nalog';
+      }
+      
+      const pageStr = s.page != null ? `стр. ${s.page}` : 'не указана';
+      const sectionStr = s.section_title || 'Раздел не указан';
+      
+      card.innerHTML = `
+        <div class="source-header" onclick="toggleSourceCard(this.parentNode)">
+          <div class="source-meta">
+            <span class="source-badge ${badgeClass}">${escapeHtml(badgeText)}</span>
+            <span class="source-title">${escapeHtml(sectionStr)}</span>
+          </div>
+          <div class="source-score-chevron">
+            <span class="source-score" title="Релевантность (Score)">${s.score.toFixed(3)}</span>
+            <svg class="source-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="source-content">
+          <div class="source-content-inner">
+            <div class="source-details">
+              <span class="source-detail-label">Файл источника:</span>
+              <span class="source-detail-value">${escapeHtml(s.source_file)}</span>
+              
+              <span class="source-detail-label">Страница в файле:</span>
+              <span class="source-detail-value">${escapeHtml(pageStr)}</span>
+              
+              <span class="source-detail-label">Идентификатор фрагмента:</span>
+              <span class="source-detail-value">${escapeHtml(s.chunk_id)}</span>
+              
+              <span class="source-detail-label">Сходство (Score):</span>
+              <span class="source-detail-value">${s.score.toFixed(4)}</span>
+            </div>
+            <div class="source-notice">
+              Текст фрагмента не передается по API для оптимизации сетевого трафика. Полное содержание раздела «${escapeHtml(sectionStr)}» доступно в оригинальном документе ${escapeHtml(s.source_file)}.
+            </div>
+          </div>
+        </div>
+      `;
+      srcContainer.appendChild(card);
     });
-    responseEl.appendChild(src);
+    container.appendChild(srcContainer);
   }
+
+  // 5. Render Meta footer
+  const meta = document.createElement('div');
+  meta.className = 'response-meta';
+  
+  const cachedBadge = body.cached ? `<span class="meta-badge cached-badge">Из кэша</span>` : '';
+  
+  meta.innerHTML = `
+    <span class="meta-item">ID: <span class="meta-val">${escapeHtml(body.request_id)}</span></span>
+    <span class="meta-item">Модель: <span class="meta-val">${escapeHtml(body.model_name)}</span></span>
+    <span class="meta-item">Промпт: <span class="meta-val">${escapeHtml(body.prompt_version)}</span></span>
+    <span class="meta-item">Время: <span class="meta-val">${latencyMs} мс</span></span>
+    ${cachedBadge}
+  `;
+  container.appendChild(meta);
+  
+  responseEl.appendChild(container);
 }
 
 function pushHistory(question, answerText) {
@@ -186,11 +1198,15 @@ function pushHistory(question, answerText) {
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const question = questionEl.value.trim();
-  if (question.length < 3) return;
-  const topK = parseInt(topKEl.value, 10) || undefined;
+  if (question.length < 3 || question.length > 500) return;
+  const topK = undefined;
 
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span class="spinner"></span>';
+  const originalBtnText = submitBtn.textContent;
+  submitBtn.textContent = 'Анализ...';
+  showSkeleton();
+
+  const startTime = performance.now();
 
   try {
     const res = await fetch('/ask', {
@@ -198,36 +1214,43 @@ form.addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question, top_k: topK }),
     });
-    const data = await res.json();
+    
+    let data;
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      data = await res.json();
+    } else {
+      data = { error: await res.text() };
+    }
 
     if (res.ok) {
-      renderResponse(question, data);
+      renderResponse(question, data, startTime);
       pushHistory(question, data.answer);
-    } else if (res.status === 503 && data.degraded) {
-      renderResponse(question, data);
+      questionEl.value = '';
+      updateTextarea();
+    } else if (res.status === 503 && data && data.degraded) {
+      renderResponse(question, data, startTime);
       pushHistory(question, data.answer);
+      questionEl.value = '';
+      updateTextarea();
     } else if (res.status === 504) {
-      const msg = 'Таймаут LLM — сервис не ответил вовремя.';
-      renderResponse(question, msg, { error: true });
-      pushHistory(question, msg);
+      showError('Модель не ответила вовремя, попробуйте ещё раз.');
     } else if (res.status === 502) {
-      const msg = 'LLM недоступен — попробуйте позже.';
-      renderResponse(question, msg, { error: true });
-      pushHistory(question, msg);
+      showError('Сервис генерации недоступен.');
+    } else if (res.status === 503) {
+      showError('Сервис ещё загружается.');
     } else if (res.status === 422) {
-      const msg = (data.detail && data.detail[0] && data.detail[0].msg) || 'Некорректный вопрос.';
-      renderResponse(question, msg, { error: true });
+      const msg = (data.detail && data.detail[0] && data.detail[0].msg) || 'Некорректный вопрос (ошибка валидации).';
+      showError(msg);
     } else {
-      const msg = data.error || `Ошибка ${res.status}`;
-      renderResponse(question, msg, { error: true });
-      pushHistory(question, msg);
+      const msg = data.error || `Произошла ошибка (код ${res.status})`;
+      showError(msg);
     }
   } catch (err) {
-    renderResponse(question, 'Не удалось связаться с сервером: ' + err.message, { error: true });
+    showError('Не удалось связаться с сервером: ' + err.message);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Отправить запрос';
-    questionEl.value = '';
+    submitBtn.textContent = originalBtnText;
     questionEl.focus();
   }
 });
