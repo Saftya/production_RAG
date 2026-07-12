@@ -1,0 +1,38 @@
+{
+  "experiment": "min_chunk",
+  "rows": [
+    {
+      "config": "section_min0",
+      "mode": "hybrid",
+      "strategy": "section",
+      "chunk_size": null,
+      "overlap": null,
+      "min_chunk_chars": 0,
+      "n_chunks": 2394,
+      "median_chunk_chars": 166.0,
+      "index_build_seconds": 38.22,
+      "encode_ms_per_chunk": 0.221,
+      "recall@5": 0.88,
+      "precision@5": 0.272,
+      "MRR": 0.7567,
+      "nDCG@10": 0.7786
+    },
+    {
+      "config": "section_min120",
+      "mode": "hybrid",
+      "strategy": "section",
+      "chunk_size": null,
+      "overlap": null,
+      "min_chunk_chars": 120,
+      "n_chunks": 1335,
+      "median_chunk_chars": 1369,
+      "index_build_seconds": 45.45,
+      "encode_ms_per_chunk": 0.581,
+      "recall@5": 0.92,
+      "precision@5": 0.208,
+      "MRR": 0.7163,
+      "nDCG@10": 0.7682,
+      "stub_chunks_filtered": 1059
+    }
+  ]
+}

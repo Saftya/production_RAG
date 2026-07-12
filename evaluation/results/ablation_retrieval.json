@@ -1,0 +1,37 @@
+{
+  "experiment": "retrieval",
+  "rows": [
+    {
+      "config": "vector",
+      "mode": "vector",
+      "strategy": "section",
+      "chunk_size": null,
+      "overlap": null,
+      "min_chunk_chars": 120,
+      "n_chunks": 1335,
+      "median_chunk_chars": 1369,
+      "index_build_seconds": 50.03,
+      "encode_ms_per_chunk": 0.292,
+      "recall@5": 0.8,
+      "precision@5": 0.192,
+      "MRR": 0.5643,
+      "nDCG@10": 0.6406
+    },
+    {
+      "config": "hybrid",
+      "mode": "hybrid",
+      "strategy": "section",
+      "chunk_size": null,
+      "overlap": null,
+      "min_chunk_chars": 120,
+      "n_chunks": 1335,
+      "median_chunk_chars": 1369,
+      "index_build_seconds": 50.38,
+      "encode_ms_per_chunk": 0.354,
+      "recall@5": 0.92,
+      "precision@5": 0.208,
+      "MRR": 0.7163,
+      "nDCG@10": 0.7682
+    }
+  ]
+}

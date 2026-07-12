@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import bisect
 import glob
 import hashlib
 import os
@@ -26,7 +27,7 @@ import re
 import sys
 import time
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -102,6 +103,29 @@ def _chunk_id(source: str, char_start: int, text: str) -> str:
     return f"{os.path.splitext(source)[0]}::{char_start}::{h}"
 
 
+_SECTION_HEADER = re.compile(
+    r"(?m)^(?:\s*)((?:Статья|Глава|Раздел)\s+[\d\-]+[\.\)]?.*|#{1,6}\s+.+)$"
+)
+
+
+def _section_title_lookup(text: str) -> Callable[[int], Optional[str]]:
+    """Build a lookup: char offset -> title of the article/heading it falls under.
+
+    Same headings chunk_section() splits on, so a recursive chunk and a section
+    chunk covering the same span agree on section_title — required for
+    evaluate_retrieval.py's is_relevant(), which matches ground-truth labels
+    against section_title regardless of which chunking strategy produced the chunk.
+    """
+    headers = [(m.start(), m.group(1).strip().lstrip("#").strip()) for m in _SECTION_HEADER.finditer(text)]
+    starts = [h[0] for h in headers]
+
+    def lookup(pos: int) -> Optional[str]:
+        idx = bisect.bisect_right(starts, pos) - 1
+        return headers[idx][1] if idx >= 0 else None
+
+    return lookup
+
+
 def chunk_recursive(
     source: str,
     text: str,
@@ -116,6 +140,7 @@ def chunk_recursive(
         chunk_overlap=chunk_overlap,
         separators=["\n\n", "\n", ". ", " ", ""],
     )
+    section_title_at = _section_title_lookup(text)
     chunks: list[Chunk] = []
     cursor = 0
     for piece in splitter.split_text(text):
@@ -128,17 +153,13 @@ def chunk_recursive(
                 chunk_id=_chunk_id(source, start, piece),
                 text=piece,
                 source_file=source,
+                section_title=section_title_at(start),
                 char_start=start,
                 char_end=end,
                 document_version=document_version,
             )
         )
     return chunks
-
-
-_SECTION_HEADER = re.compile(
-    r"(?m)^(?:\s*)((?:Статья|Глава|Раздел)\s+[\d\-]+[\.\)]?.*|#{1,6}\s+.+)$"
-)
 
 
 def chunk_section(source: str, text: str, document_version: str = "v1") -> list[Chunk]:
