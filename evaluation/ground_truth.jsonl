@@ -1,16 +1,16 @@
-{"id": "q01", "question": "Какова нормальная продолжительность рабочего времени в неделю?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 12"]}
-{"id": "q02", "question": "Сколько часов в неделю может работать сотрудник в возрасте от 16 до 18 лет?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 15"]}
-{"id": "q03", "question": "Какова минимальная продолжительность ежегодного оплачиваемого трудового отпуска?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 20"]}
-{"id": "q04", "question": "За сколько дней до начала отпуска должна быть произведена оплата отпускных?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 20"]}
+{"id": "q01", "question": "Какова нормальная продолжительность рабочего времени в неделю?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 68"]}
+{"id": "q02", "question": "Сколько часов в неделю может работать сотрудник в возрасте от 16 до 18 лет?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 69"]}
+{"id": "q03", "question": "Какова минимальная продолжительность ежегодного оплачиваемого трудового отпуска?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 88"]}
+{"id": "q04", "question": "За сколько дней до начала отпуска должна быть произведена оплата отпускных?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 92"]}
 {"id": "q05", "question": "Что такое трудовой договор согласно кодексу?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 1"]}
 {"id": "q06", "question": "Кто считается работником?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 1"]}
-{"id": "q07", "question": "В каком размере оплачивается сверхурочная работа?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 31"]}
-{"id": "q08", "question": "Как оплачивается работа в праздничные и выходные дни?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 31"]}
-{"id": "q09", "question": "За сколько дней работник должен предупредить работодателя об увольнении по собственному желанию?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 40"]}
-{"id": "q10", "question": "Какова продолжительность отпуска по беременности и родам до родов?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 50"]}
-{"id": "q11", "question": "Можно ли уволить беременную женщину по инициативе работодателя?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 50"]}
-{"id": "q12", "question": "Чем ограничивается материальная ответственность работника?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 55"]}
-{"id": "q13", "question": "Какие дисциплинарные взыскания может применить работодатель?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 60"]}
+{"id": "q07", "question": "В каком размере оплачивается сверхурочная работа?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 108"]}
+{"id": "q08", "question": "Как оплачивается работа в праздничные и выходные дни?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 109"]}
+{"id": "q09", "question": "За сколько дней работник должен предупредить работодателя об увольнении по собственному желанию?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 56"]}
+{"id": "q10", "question": "Какова продолжительность отпуска по беременности и родам до родов?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 99"]}
+{"id": "q11", "question": "Можно ли уволить беременную женщину по инициативе работодателя?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 51"]}
+{"id": "q12", "question": "Чем ограничивается материальная ответственность работника?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 123"]}
+{"id": "q13", "question": "Какие дисциплинарные взыскания может применить работодатель?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 64"]}
 {"id": "q14", "question": "Кто обеспечивает работников средствами индивидуальной защиты?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 70"]}
 {"id": "q15", "question": "В какой срок работник может обратиться в суд по спору о восстановлении на работе?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 80"]}
 {"id": "q16", "question": "Как соотносятся минимальная заработная плата и оплата сверхурочной работы?", "type": "multi_chunk", "source_file": "tk.pdf", "relevant_sections": ["Статья 30", "Статья 31"]}
