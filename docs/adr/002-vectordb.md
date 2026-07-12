@@ -24,6 +24,6 @@ Metadata filtering is done in Python post-retrieval (small corpus, cheap).
   provably a chunking/embedding issue, not an ANN issue.
 - (+) Startup just `read_index` + load JSONL; well under the 30s gate.
 - (−) `IndexFlatIP` is O(N) per query — fine now, but the documented scale path is
-  HNSW/IVF-PQ past ~1M vectors (see architecture.md).
+  HNSW/IVF-PQ past ~1M vectors (см. docs/architecture.png).
 - (−) Post-hoc Python filtering won't scale to huge corpora; would move into the
   index (Chroma-style metadata) at that point.

@@ -17,10 +17,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
-from app.config import settings
-from app.embeddings import build_embedder
-from app.generation import REFUSAL, generate
+from app.generation import PROMPT_VERSION, REFUSAL, ResponseCache, generate
 from app.observability import (
     get_request_id,
     log,
@@ -28,17 +27,15 @@ from app.observability import (
     new_request_id,
     set_request_id,
 )
-from app.prompts import PROMPT_VERSION
 from app.reliability import LLMTimeoutError, LLMUnavailableError
-from app.response_cache import ResponseCache
-from app.retrieval import Retriever
+from app.retrieval import FaissStore, Retriever, build_embedder
 from app.schemas import (
     AnswerResponse,
     AskRequest,
     HealthResponse,
     ReadyResponse,
+    settings,
 )
-from app.vectorstore import FaissStore
 
 state: dict = {"retriever": None, "cache": None, "ready": False}
 
@@ -176,3 +173,8 @@ def ask(req: AskRequest) -> JSONResponse:
         refused=answer.answer == REFUSAL,
     )
     return JSONResponse(answer.model_dump())
+
+
+# ------------------------------------------------------------------- web UI
+# Mounted last so it never shadows the API routes above.
+app.mount("/", StaticFiles(directory="app/static", html=True), name="ui")

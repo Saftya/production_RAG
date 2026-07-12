@@ -1,91 +1,136 @@
 {
-  "n_questions": 16,
+  "n_questions": 25,
   "k": 5,
   "mode": "hybrid",
-  "recall@5": 0.875,
-  "precision@5": 0.2125,
-  "MRR": 0.7396,
-  "nDCG@10": 0.7694,
+  "recall@5": 0.92,
+  "precision@5": 0.208,
+  "MRR": 0.7163,
+  "nDCG@10": 0.7682,
   "per_question": [
     {
       "id": "q01",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
       "id": "q02",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
       "id": "q03",
-      "recall@k": 0.0,
-      "rr": 0.0
+      "hit": true,
+      "rr": 0.5
     },
     {
       "id": "q04",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
       "id": "q05",
-      "recall@k": 0.0,
+      "hit": false,
       "rr": 0.0
     },
     {
       "id": "q06",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
       "id": "q07",
-      "recall@k": 1.0,
-      "rr": 0.5
-    },
-    {
-      "id": "q08",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
+      "id": "q08",
+      "hit": true,
+      "rr": 0.5
+    },
+    {
       "id": "q09",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
       "id": "q10",
-      "recall@k": 1.0,
-      "rr": 1.0
-    },
-    {
-      "id": "q11",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 0.333
     },
     {
+      "id": "q11",
+      "hit": true,
+      "rr": 0.5
+    },
+    {
       "id": "q12",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 1.0
     },
     {
       "id": "q13",
-      "recall@k": 1.0,
-      "rr": 1.0
+      "hit": true,
+      "rr": 0.5
     },
     {
       "id": "q14",
-      "recall@k": 1.0,
-      "rr": 1.0
+      "hit": true,
+      "rr": 0.5
     },
     {
       "id": "q15",
-      "recall@k": 1.0,
+      "hit": true,
       "rr": 0.5
     },
     {
-      "id": "q16",
-      "recall@k": 1.0,
-      "rr": 0.5
+      "id": "n01",
+      "hit": false,
+      "rr": 0.125
+    },
+    {
+      "id": "n02",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n03",
+      "hit": true,
+      "rr": 0.25
+    },
+    {
+      "id": "n04",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n05",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n06",
+      "hit": true,
+      "rr": 0.2
+    },
+    {
+      "id": "n07",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n08",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n09",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n10",
+      "hit": true,
+      "rr": 1.0
     }
   ]
 }

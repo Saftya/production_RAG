@@ -8,10 +8,18 @@
 {"id": "q08", "question": "Как оплачивается работа в праздничные и выходные дни?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 109"]}
 {"id": "q09", "question": "За сколько дней работник должен предупредить работодателя об увольнении по собственному желанию?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 56"]}
 {"id": "q10", "question": "Какова продолжительность отпуска по беременности и родам до родов?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 99"]}
-{"id": "q11", "question": "Можно ли уволить беременную женщину по инициативе работодателя?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 51"]}
+{"id": "q11", "question": "Можно ли уволить беременную женщину по инициативе работодателя?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 54"]}
 {"id": "q12", "question": "Чем ограничивается материальная ответственность работника?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 123"]}
 {"id": "q13", "question": "Какие дисциплинарные взыскания может применить работодатель?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 64"]}
-{"id": "q14", "question": "Кто обеспечивает работников средствами индивидуальной защиты?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 70"]}
-{"id": "q15", "question": "В какой срок работник может обратиться в суд по спору о восстановлении на работе?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 80"]}
-{"id": "q16", "question": "Как соотносятся минимальная заработная плата и оплата сверхурочной работы?", "type": "multi_chunk", "source_file": "tk.pdf", "relevant_sections": ["Статья 30", "Статья 31"]}
-{"id": "q17", "question": "...", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья N. кусок заголовка"]}
+{"id": "q14", "question": "Кто обеспечивает работников средствами индивидуальной защиты?", "type": "definition", "source_file": "tk.pdf", "relevant_sections": ["Статья 182"]}
+{"id": "q15", "question": "В какой срок работник может обратиться в суд по спору о восстановлении на работе?", "type": "numeric", "source_file": "tk.pdf", "relevant_sections": ["Статья 160"]}
+{"id": "n01", "question": "Какова ставка подоходного налога у источника выплаты по доходам лица, зарегистрированного в государстве с льготным налогообложением?", "type": "numeric", "source_file": "nk.pdf", "relevant_sections": ["Статья 682"]}
+{"id": "n02", "question": "В каких случаях устанавливается ограничение в распоряжении имуществом налогоплательщика?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 87"]}
+{"id": "n03", "question": "На основании какого документа проводится налоговая проверка?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 153"]}
+{"id": "n04", "question": "Что такое налоговое обследование?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 181"]}
+{"id": "n05", "question": "Что является объектами обложения налогом на добавленную стоимость?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 448"]}
+{"id": "n06", "question": "Что такое облагаемый импорт?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 451"]}
+{"id": "n07", "question": "На какой срок предоставляется рассрочка по уплате налогов, плат и пеней?", "type": "numeric", "source_file": "nk.pdf", "relevant_sections": ["Статья 133"]}
+{"id": "n08", "question": "Что такое упрощенный порядок возврата суммы превышения налога?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 127"]}
+{"id": "n09", "question": "Каковы сроки исполнения налогового обязательства?", "type": "numeric", "source_file": "nk.pdf", "relevant_sections": ["Статья 64"]}
+{"id": "n10", "question": "К какому виду уведомлений относятся уведомления о результатах налоговой проверки?", "type": "definition", "source_file": "nk.pdf", "relevant_sections": ["Статья 83"]}

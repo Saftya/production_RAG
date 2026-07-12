@@ -10,7 +10,7 @@ from collections import deque
 from contextvars import ContextVar
 from typing import Any
 
-from app.config import settings
+from app.schemas import settings
 
 # request_id is set per-request by the FastAPI middleware and read by the logger.
 _request_id: ContextVar[str] = ContextVar("request_id", default="-")

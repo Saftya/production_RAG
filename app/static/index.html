@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask the docs</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8; --fg: #1a1a1a; --muted: #666; --card: #fff;
+    --border: #e2e2e5; --accent: #2563eb; --accent-fg: #fff;
+    --refusal: #92400e; --refusal-bg: #fef3c7;
+    --err: #b91c1c; --err-bg: #fee2e2;
+    --answer-bg: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16171a; --fg: #e8e8ea; --muted: #999; --card: #1e2024;
+      --border: #2c2e33; --accent: #3b82f6; --accent-fg: #fff;
+      --refusal: #fbbf24; --refusal-bg: #3a2e0f;
+      --err: #f87171; --err-bg: #3a1414;
+      --answer-bg: #1e2024;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1rem 4rem; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 780px; }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  p.sub { color: var(--muted); margin: 0 0 1.75rem; font-size: .9rem; }
+
+  /* --- input block: large textarea + prominent send button --- */
+  form { margin-bottom: 1.25rem; }
+  textarea#question {
+    width: 100%; resize: vertical; padding: 1rem 1.1rem; border-radius: 14px;
+    border: 1px solid var(--border); background: var(--card); color: var(--fg);
+    font-size: 1.05rem; font-family: inherit; line-height: 1.5;
+    min-height: 9rem; display: block;
+  }
+  textarea#question:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: .7rem; }
+  .options { display: flex; gap: 1rem; align-items: center; font-size: .85rem; color: var(--muted); }
+  .options input[type=number] { width: 3.5rem; padding: .25rem .4rem; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--fg); }
+
+  button#submit-btn {
+    padding: .8rem 2rem; border: none; border-radius: 12px; background: var(--accent);
+    color: var(--accent-fg); font-size: 1rem; font-weight: 600; cursor: pointer;
+    min-width: 11rem;
+  }
+  button#submit-btn:disabled { opacity: .5; cursor: default; }
+  .spinner { display: inline-block; width: 1em; height: 1em; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -.15em; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- response window: always visible, holds the latest answer --- */
+  #response {
+    margin-top: 1.75rem; border: 1px solid var(--border); border-radius: 16px;
+    background: var(--answer-bg); min-height: 12rem; padding: 1.5rem 1.6rem;
+    display: flex; flex-direction: column;
+  }
+  #response h2 { margin: 0 0 1rem; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  #response .placeholder { margin: auto; color: var(--muted); text-align: center; font-size: .95rem; }
+  .response-question { font-size: .85rem; color: var(--muted); margin: 0 0 .8rem; }
+  .response-answer { margin: 0 0 1rem; white-space: pre-wrap; line-height: 1.6; font-size: 1.05rem; }
+  .response-answer.refusal { color: var(--refusal); background: var(--refusal-bg); padding: .7rem .9rem; border-radius: 10px; }
+  .response-answer.err { color: var(--err); background: var(--err-bg); padding: .7rem .9rem; border-radius: 10px; }
+  .meta { display: flex; flex-wrap: wrap; gap: .4rem .6rem; font-size: .78rem; color: var(--muted); margin-bottom: 1rem; }
+  .badge { border: 1px solid var(--border); border-radius: 999px; padding: .1rem .55rem; }
+  .badge.cached { color: var(--accent); border-color: var(--accent); }
+  .badge.degraded { color: var(--err); border-color: var(--err); }
+  .sources { display: flex; flex-direction: column; gap: .35rem; }
+  .source { font-size: .82rem; padding: .5rem .7rem; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); }
+  .source .title { font-weight: 600; }
+  .source .file { color: var(--muted); }
+
+  /* --- history: earlier exchanges, secondary --- */
+  #history-heading { margin: 2.25rem 0 .75rem; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; display: none; }
+  #history { display: flex; flex-direction: column; gap: .6rem; }
+  .hist-item { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: .7rem .9rem; font-size: .85rem; }
+  .hist-item .q { font-weight: 600; margin: 0 0 .3rem; }
+  .hist-item .a { margin: 0; color: var(--muted); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ask the docs</h1>
+  <p class="sub">Вопросы по загруженному корпусу — ответ строится строго на найденных фрагментах.</p>
+
+  <form id="ask-form">
+    <textarea id="question" placeholder="Например: Какова минимальная продолжительность ежегодного трудового отпуска?" required minlength="3" maxlength="500"></textarea>
+    <div class="toolbar">
+      <div class="options">
+        <label>top_k <input id="top-k" type="number" min="1" max="20" value="5"></label>
+      </div>
+      <button id="submit-btn" type="submit">Отправить запрос</button>
+    </div>
+  </form>
+
+  <div id="response">
+    <p class="placeholder" id="response-placeholder">Ответ появится здесь.</p>
+  </div>
+
+  <h2 id="history-heading">Предыдущие вопросы</h2>
+  <div id="history"></div>
+</main>
+
+<script>
+const form = document.getElementById('ask-form');
+const questionEl = document.getElementById('question');
+const topKEl = document.getElementById('top-k');
+const submitBtn = document.getElementById('submit-btn');
+const responseEl = document.getElementById('response');
+const historyEl = document.getElementById('history');
+const historyHeading = document.getElementById('history-heading');
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderResponse(question, body, opts) {
+  responseEl.innerHTML = '';
+
+  const q = document.createElement('p');
+  q.className = 'response-question';
+  q.textContent = question;
+  responseEl.appendChild(q);
+
+  if (opts && opts.error) {
+    const a = document.createElement('p');
+    a.className = 'response-answer err';
+    a.textContent = body;
+    responseEl.appendChild(a);
+    return;
+  }
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const badges = [
+    `confidence ${body.confidence.toFixed(2)}`,
+    body.used_context ? 'used_context' : 'no context',
+    body.model_name,
+  ];
+  meta.innerHTML = badges.map(b => `<span class="badge">${escapeHtml(b)}</span>`).join('');
+  if (body.cached) meta.innerHTML += `<span class="badge cached">cached</span>`;
+  if (body.degraded) meta.innerHTML += `<span class="badge degraded">degraded</span>`;
+  responseEl.appendChild(meta);
+
+  const a = document.createElement('p');
+  const isRefusal = /don.t know from the provided context/i.test(body.answer);
+  a.className = 'response-answer' + (isRefusal ? ' refusal' : '');
+  a.textContent = body.answer;
+  responseEl.appendChild(a);
+
+  if (body.sources && body.sources.length) {
+    const src = document.createElement('div');
+    src.className = 'sources';
+    body.sources.forEach(s => {
+      const d = document.createElement('div');
+      d.className = 'source';
+      d.innerHTML = `<span class="title">${escapeHtml(s.section_title || s.chunk_id)}</span> ` +
+        `<span class="file">— ${escapeHtml(s.source_file)}${s.page != null ? ', стр. ' + s.page : ''} (score ${s.score.toFixed(3)})</span>`;
+      src.appendChild(d);
+    });
+    responseEl.appendChild(src);
+  }
+}
+
+function pushHistory(question, answerText) {
+  historyHeading.style.display = 'block';
+  const item = document.createElement('div');
+  item.className = 'hist-item';
+  const q = document.createElement('p');
+  q.className = 'q';
+  q.textContent = question;
+  const a = document.createElement('p');
+  a.className = 'a';
+  a.textContent = answerText;
+  item.appendChild(q);
+  item.appendChild(a);
+  historyEl.prepend(item);
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const question = questionEl.value.trim();
+  if (question.length < 3) return;
+  const topK = parseInt(topKEl.value, 10) || undefined;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res = await fetch('/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, top_k: topK }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      renderResponse(question, data);
+      pushHistory(question, data.answer);
+    } else if (res.status === 503 && data.degraded) {
+      renderResponse(question, data);
+      pushHistory(question, data.answer);
+    } else if (res.status === 504) {
+      const msg = 'Таймаут LLM — сервис не ответил вовремя.';
+      renderResponse(question, msg, { error: true });
+      pushHistory(question, msg);
+    } else if (res.status === 502) {
+      const msg = 'LLM недоступен — попробуйте позже.';
+      renderResponse(question, msg, { error: true });
+      pushHistory(question, msg);
+    } else if (res.status === 422) {
+      const msg = (data.detail && data.detail[0] && data.detail[0].msg) || 'Некорректный вопрос.';
+      renderResponse(question, msg, { error: true });
+    } else {
+      const msg = data.error || `Ошибка ${res.status}`;
+      renderResponse(question, msg, { error: true });
+      pushHistory(question, msg);
+    }
+  } catch (err) {
+    renderResponse(question, 'Не удалось связаться с сервером: ' + err.message, { error: true });
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Отправить запрос';
+    questionEl.value = '';
+    questionEl.focus();
+  }
+});
+</script>
+</body>
+</html>

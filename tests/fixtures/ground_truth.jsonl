@@ -1,0 +1,6 @@
+{"id": "f01", "question": "Какова нормальная продолжительность рабочего времени в неделю?", "type": "numeric", "source_file": "labor_code_sample.md", "relevant_sections": ["Статья 68. Нормальная"]}
+{"id": "f02", "question": "Сколько часов в неделю может работать сотрудник от 16 до 18 лет?", "type": "numeric", "source_file": "labor_code_sample.md", "relevant_sections": ["Статья 69. Сокращенная"]}
+{"id": "f03", "question": "Какова продолжительность оплачиваемого ежегодного трудового отпуска?", "type": "numeric", "source_file": "labor_code_sample.md", "relevant_sections": ["Статья 88. Продолжительность"]}
+{"id": "f04", "question": "В каком размере оплачивается сверхурочная работа?", "type": "numeric", "source_file": "labor_code_sample.md", "relevant_sections": ["Статья 108. Оплата сверхурочной"]}
+{"id": "f05", "question": "Как оплачивается работа в праздничные и выходные дни?", "type": "numeric", "source_file": "labor_code_sample.md", "relevant_sections": ["Статья 109. Оплата работы"]}
+{"id": "f06", "question": "Чем ограничивается материальная ответственность работника?", "type": "definition", "source_file": "labor_code_sample.md", "relevant_sections": ["Статья 123. Материальная"]}
