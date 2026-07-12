@@ -8,7 +8,7 @@ data/index/
 data/.embed_cache/
 data/chunks.jsonl
 # large raw corpora (keep the small sample)
-data/raw/*.pdf
+# data/raw/*.pdf
 data/raw/*.html
 .DS_Store
 .ipynb_checkpoints/
