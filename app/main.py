@@ -17,6 +17,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.generation import PROMPT_VERSION, REFUSAL, ResponseCache, generate
 from app.observability import (
@@ -185,3 +186,10 @@ def ask(req: AskRequest) -> JSONResponse:
         refused=answer.answer == REFUSAL,
     )
     return JSONResponse(answer.model_dump())
+
+
+# ------------------------------------------------------------------- web UI
+# Mounted LAST, on purpose: a mount on "/" swallows every unmatched path, so any
+# route declared after it would become unreachable. The API routes above are
+# registered first and keep priority; /docs and /openapi.json still work.
+app.mount("/", StaticFiles(directory="app/static", html=True), name="ui")

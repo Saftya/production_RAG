@@ -1,11 +1,11 @@
 {
-  "n_questions": 25,
+  "n_questions": 27,
   "k": 5,
   "mode": "hybrid",
-  "recall@5": 0.92,
-  "precision@5": 0.208,
-  "MRR": 0.7163,
-  "nDCG@10": 0.7682,
+  "recall@5": 0.8889,
+  "precision@5": 0.2,
+  "MRR": 0.7003,
+  "nDCG@10": 0.7483,
   "per_question": [
     {
       "id": "q01",
@@ -129,6 +129,16 @@
     },
     {
       "id": "n10",
+      "hit": true,
+      "rr": 1.0
+    },
+    {
+      "id": "n11",
+      "hit": false,
+      "rr": 0.0
+    },
+    {
+      "id": "n11",
       "hit": true,
       "rr": 1.0
     }

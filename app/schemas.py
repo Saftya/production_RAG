@@ -15,10 +15,9 @@ from typing import Any, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-# Load .env into the process environment before Settings reads it. Real env
-# vars still win (load_dotenv default: override=False) — needed so
-# tests/conftest.py's os.environ overrides, set before this module is
-# imported, aren't clobbered by .env.
+# Load .env into the process environment BEFORE Settings reads it. Real env vars
+# still win (load_dotenv default: override=False), so `EMBEDDING_BACKEND=hash pytest`
+# and tests/conftest.py's overrides are not clobbered by .env.
 load_dotenv()
 
 # ============================================================ configuration
@@ -49,10 +48,14 @@ class Settings:
     top_k: int = int(_get("TOP_K", "5"))
     retrieval_mode: str = _get("RETRIEVAL_MODE", "hybrid")  # "vector" | "hybrid"
     rrf_k: int = int(_get("RRF_K", "60"))
-    # 120: below this, a "Статья N. Title" match is a table-of-contents stub with
-    # no body (measured empirically: ~40% of raw chunks on the Labor/Tax Code PDFs),
-    # not an answerable article. Filtering them lifted hybrid recall@5 0.88 -> 0.92.
-    min_chunk_chars: int = int(_get("MIN_CHUNK_CHARS", "120"))
+    # Candidate pool fed into RRF, FIXED and independent of the requested top_k.
+    # It used to be top_k*4, which made the top-5 depend on whether you asked for 5
+    # or 10: a bigger request pulled a bigger BM25 pool, changed the fusion, and
+    # reshuffled the top-5. Evaluation and production then disagreed on the same
+    # query. A fixed pool makes retrieval reproducible: ask for 5 or 50, the first
+    # 5 are the same 5.
+    candidate_pool: int = int(_get("CANDIDATE_POOL", "40"))
+    min_chunk_chars: int = int(_get("MIN_CHUNK_CHARS", "0"))  # drop ToC stubs
 
     # --- generation (OpenAI-compatible: Ollama / Alem.ai / OpenAI) ---
     llm_backend: str = _get("LLM_BACKEND", "openai")  # "openai" | "stub"

@@ -351,13 +351,17 @@ class Retriever:
             return self._cache[key], True
 
         self.cache_misses += 1
+        # Over-fetch a FIXED candidate pool, never a multiple of the requested k, so
+        # the fused ranking (and therefore the top-5) does not change when the caller
+        # asks for a different number of results.
+        pool = max(settings.candidate_pool, k)
         qvec = self.embedder.encode([query])[0]
-        vector_hits = self.store.search(qvec, k * 4)  # over-fetch before fusion
+        vector_hits = self.store.search(qvec, pool)
 
         if self.mode == "hybrid" and self._bm25 is not None:
-            lexical_hits = self._bm25.search(query, k * 4)
+            lexical_hits = self._bm25.search(query, pool)
             fused = reciprocal_rank_fusion(
-                [vector_hits, lexical_hits], k=k * 4, rrf_k=settings.rrf_k
+                [vector_hits, lexical_hits], k=pool, rrf_k=settings.rrf_k
             )
         else:
             fused = vector_hits
