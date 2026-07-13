@@ -8,14 +8,15 @@
       "chunk_size": null,
       "overlap": null,
       "min_chunk_chars": 0,
+      "candidate_pool": 40,
       "n_chunks": 2394,
       "median_chunk_chars": 166.0,
-      "index_build_seconds": 44.46,
-      "encode_ms_per_chunk": 0.24,
-      "recall@5": 0.88,
-      "precision@5": 0.272,
-      "MRR": 0.7567,
-      "nDCG@10": 0.7786
+      "index_build_seconds": 40.9,
+      "encode_ms_per_chunk": 0.273,
+      "recall@5": 0.8519,
+      "precision@5": 0.2593,
+      "MRR": 0.7377,
+      "nDCG@10": 0.7502
     },
     {
       "config": "section_min120",
@@ -24,14 +25,15 @@
       "chunk_size": null,
       "overlap": null,
       "min_chunk_chars": 120,
+      "candidate_pool": 40,
       "n_chunks": 1335,
       "median_chunk_chars": 1369,
-      "index_build_seconds": 41.97,
-      "encode_ms_per_chunk": 0.353,
-      "recall@5": 0.92,
-      "precision@5": 0.208,
-      "MRR": 0.7163,
-      "nDCG@10": 0.7682,
+      "index_build_seconds": 39.3,
+      "encode_ms_per_chunk": 0.299,
+      "recall@5": 0.8889,
+      "precision@5": 0.2,
+      "MRR": 0.7003,
+      "nDCG@10": 0.7483,
       "stub_chunks_filtered": 1059
     }
   ]

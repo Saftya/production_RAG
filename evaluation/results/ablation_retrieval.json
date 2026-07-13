@@ -7,15 +7,16 @@
       "strategy": "section",
       "chunk_size": null,
       "overlap": null,
-      "min_chunk_chars": 120,
-      "n_chunks": 1335,
-      "median_chunk_chars": 1369,
-      "index_build_seconds": 47.39,
-      "encode_ms_per_chunk": 0.248,
-      "recall@5": 0.8,
-      "precision@5": 0.192,
-      "MRR": 0.5643,
-      "nDCG@10": 0.6406
+      "min_chunk_chars": 0,
+      "candidate_pool": 40,
+      "n_chunks": 2394,
+      "median_chunk_chars": 166.0,
+      "index_build_seconds": 51.26,
+      "encode_ms_per_chunk": 4.325,
+      "recall@5": 0.7778,
+      "precision@5": 0.2519,
+      "MRR": 0.6099,
+      "nDCG@10": 0.6285
     },
     {
       "config": "hybrid",
@@ -23,15 +24,16 @@
       "strategy": "section",
       "chunk_size": null,
       "overlap": null,
-      "min_chunk_chars": 120,
-      "n_chunks": 1335,
-      "median_chunk_chars": 1369,
-      "index_build_seconds": 48.0,
-      "encode_ms_per_chunk": 0.289,
-      "recall@5": 0.92,
-      "precision@5": 0.208,
-      "MRR": 0.7163,
-      "nDCG@10": 0.7682
+      "min_chunk_chars": 0,
+      "candidate_pool": 40,
+      "n_chunks": 2394,
+      "median_chunk_chars": 166.0,
+      "index_build_seconds": 39.17,
+      "encode_ms_per_chunk": 0.281,
+      "recall@5": 0.8519,
+      "precision@5": 0.2593,
+      "MRR": 0.7377,
+      "nDCG@10": 0.7502
     }
   ]
 }

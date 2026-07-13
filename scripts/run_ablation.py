@@ -92,7 +92,10 @@ def _build_and_evaluate(config: dict[str, Any], top_k: int, gt_path: str) -> dic
     store.save(str(ABLATION_DIR / config["name"]))
 
     gt = load_gt(gt_path)
-    retriever = Retriever(embedder, store, mode=config.get("mode", "hybrid"))
+    retriever = Retriever(
+        embedder, store, mode=config.get("mode", "hybrid"),
+        candidate_pool=config.get("candidate_pool"),
+    )
     m = evaluate(retriever, gt, k=top_k)
 
     return {
@@ -102,6 +105,7 @@ def _build_and_evaluate(config: dict[str, Any], top_k: int, gt_path: str) -> dic
         "chunk_size": config.get("chunk_size"),
         "overlap": config.get("overlap"),
         "min_chunk_chars": config.get("min_chunk_chars") or 0,
+        "candidate_pool": retriever.candidate_pool,
         "n_chunks": len(chunks),
         "median_chunk_chars": round(statistics.median(len(c.text) for c in chunks), 1),
         "index_build_seconds": round(build_s, 2),
@@ -223,8 +227,37 @@ def experiment_min_chunk(top_k: int = 5, gt_path: str = str(GT_PATH)) -> list[di
     return rows
 
 
+def experiment_candidate_pool(top_k: int = 5, gt_path: str = str(GT_PATH)) -> list[dict[str, Any]]:
+    """D) How many candidates each retriever hands to RRF before fusion.
+
+    This one exists because of a bug: the pool used to be `top_k * 4`, so asking for
+    10 results changed the top-5 (a bigger BM25 pool re-shuffled the fusion). diagnose
+    (top_k=5) and evaluate (top_k=10) disagreed on the SAME config. The pool is now
+    fixed and independent of top_k; this sweep picks its value on evidence rather than
+    on a guess. Chunking, embeddings and mode are pinned — only the pool moves.
+    """
+    from app.schemas import settings  # noqa: E402
+
+    rows = []
+    for pool in (10, 20, 40, 80):
+        rows.append(
+            run_config(
+                {
+                    "name": f"pool_{pool}", "strategy": "section",
+                    "chunk_size": None, "overlap": None,
+                    "min_chunk_chars": settings.min_chunk_chars,
+                    "mode": "hybrid", "candidate_pool": pool,
+                },
+                top_k,
+                gt_path,
+            )
+        )
+    return rows
+
+
 EXPERIMENTS = {
     "chunk_size": experiment_chunk_size,
+    "candidate_pool": experiment_candidate_pool,
     "retrieval": experiment_retrieval,
     "min_chunk": experiment_min_chunk,
 }
@@ -253,6 +286,9 @@ _MD_COLUMNS = {
     "min_chunk": [
         ("min_chunk_chars", "min_chunk_chars"), ("n_chunks", "n_chunks"),
         ("stub_chunks_filtered", "stub_chunks_filtered"), ("median_chunk_chars", "median_chars"),
+    ],
+    "candidate_pool": [
+        ("candidate_pool", "candidate_pool"), ("n_chunks", "n_chunks"),
     ],
 }
 
@@ -317,6 +353,16 @@ def write_plot(rows: list[dict], path: Path, *, experiment: str, top_k: int) -> 
         ax.set_title("Retrieval strategy: vector vs hybrid")
         ax.legend()
 
+    elif experiment == "candidate_pool":
+        pools = [r["candidate_pool"] for r in rows]
+        ax.plot(pools, [r[recall_key] for r in rows], marker="o", label=recall_key)
+        ax.plot(pools, [r["MRR"] for r in rows], marker="s", label="MRR")
+        ax.axhline(0.75, ls="--", color="red", alpha=0.6, label="defense gate 0.75")
+        ax.set_xlabel("candidate_pool (candidates fused by RRF)")
+        ax.set_ylim(0, 1)
+        ax.set_title("Candidate-pool ablation")
+        ax.legend()
+
     else:  # min_chunk
         labels = [str(r["min_chunk_chars"]) for r in rows]
         ax.bar(labels, [r["n_chunks"] for r in rows], color="#999999", alpha=0.5, label="n_chunks")
@@ -343,6 +389,7 @@ _TITLES = {
     "chunk_size": "Chunk-size sweep (recursive) vs section (article-aware) baseline",
     "retrieval": "Retrieval strategy: vector vs hybrid (section chunking)",
     "min_chunk": "min_chunk_chars: filtering table-of-contents stub chunks",
+    "candidate_pool": "candidate_pool: how many candidates RRF fuses before truncating to top_k",
 }
 
 

@@ -309,10 +309,12 @@ class Retriever:
         store: FaissStore,
         mode: str = "hybrid",
         cache_size: int = 256,
+        candidate_pool: Optional[int] = None,
     ) -> None:
         self.embedder = embedder
         self.store = store
         self.mode = mode
+        self.candidate_pool = candidate_pool or settings.candidate_pool
         self._bm25: Optional[BM25Index] = BM25Index(store.chunks) if mode == "hybrid" else None
         self._cache: "OrderedDict[str, list[RetrievedChunk]]" = OrderedDict()
         self._cache_size = cache_size
@@ -320,7 +322,7 @@ class Retriever:
         self.cache_misses = 0
 
     def _cache_key(self, query: str, top_k: int) -> str:
-        raw = f"{query}\x00{self.store.index_version}\x00{top_k}\x00{self.mode}"
+        raw = f"{query}\x00{self.store.index_version}\x00{top_k}\x00{self.mode}\x00{self.candidate_pool}"
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
     @staticmethod
@@ -354,7 +356,7 @@ class Retriever:
         # Over-fetch a FIXED candidate pool, never a multiple of the requested k, so
         # the fused ranking (and therefore the top-5) does not change when the caller
         # asks for a different number of results.
-        pool = max(settings.candidate_pool, k)
+        pool = max(self.candidate_pool, k)
         qvec = self.embedder.encode([query])[0]
         vector_hits = self.store.search(qvec, pool)
 
